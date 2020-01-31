@@ -11,7 +11,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/examples/hello-world/app.js"
+            // "program": "${workspaceFolder}/examples/hello-world/app.js"
+            "program": "${workspaceFolder}/examples/compose/app.js"
         }
     ]
 }
