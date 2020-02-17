@@ -15,7 +15,7 @@
 >5.[学习 vuex 源码整体架构，打造属于自己的状态管理库](https://juejin.im/post/5dd4e61a6fb9a05a5c010af0)<br>
 >6.[学习 axios 源码整体架构，打造属于自己的请求库](https://juejin.im/post/5df349b5518825123751ba66)<br>
 
-感兴趣的读者可以点击阅读。
+感兴趣的读者可以点击阅读。计划中：`express`、`vue-rotuer`源码。
 
 本文学习的`koa`版本是`v2.11.0`。克隆的官方仓库的`master`分支。
 TODO:
@@ -93,6 +93,54 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 ```
 
 上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。
+
+```js
+const compose = require('koa-compose');
+const Koa = require('../../koa/lib/application');
+// const Koa = require('koa');
+const app = module.exports = new Koa();
+
+console.log(app, 'app-new-koa()');
+// x-response-time
+
+async function responseTime(ctx, next) {
+  const start = new Date();
+  await next();
+  const ms = new Date() - start;
+  ctx.set('X-Response-Time', ms + 'ms');
+}
+
+// logger
+
+async function logger(ctx, next) {
+  const start = new Date();
+  await next();
+  const ms = new Date() - start;
+  if ('test' != process.env.NODE_ENV) {
+    console.log('%s %s - %s', ctx.method, ctx.url, ms);
+  }
+}
+
+// response
+
+async function respond(ctx, next) {
+  await next();
+  if ('/' != ctx.url) return;
+  ctx.body = 'Hello World';
+}
+
+// composed middleware
+
+const all = compose([
+  responseTime,
+  logger,
+  respond
+]);
+
+app.use(all);
+
+if (!module.parent) app.listen(3000);
+```
 
 ## 源码
 
