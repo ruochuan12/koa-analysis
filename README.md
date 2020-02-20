@@ -142,6 +142,9 @@ app.use(all);
 if (!module.parent) app.listen(3000);
 ```
 
+![中间件gif图](./images/middleware.gif)
+
+
 ## 源码
 
 ## 推荐阅读
