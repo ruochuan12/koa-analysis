@@ -92,7 +92,7 @@ npm i
 git clone https://github.com/lxchuan12/koa-analysis.git
 ```
 
-上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。
+上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的。
 
 ```js
 const compose = require('koa-compose');
