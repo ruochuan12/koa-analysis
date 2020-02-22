@@ -5,7 +5,7 @@
 >这是`学习源码整体架构系列`第七篇。整体架构这词语好像有点大，姑且就算是源码整体结构吧，主要就是学习是代码整体结构，不深究其他不是主线的具体函数的实现。本篇文章学习的是实际仓库的代码。
 
 源码类文章，一般阅读量不高。已经有能力看懂的，自己就看了。不想看，不敢看的就不会去看源码。<br>
-所以笔者的文章，尽量写得让想看源码又不知道怎么看的读者能看懂。
+所以我的文章，尽量写得让想看源码又不知道怎么看的读者能看懂。
 
 `学习源码整体架构系列`文章如下：
 >1.[学习 jQuery 源码整体架构，打造属于自己的 js 类库](https://juejin.im/post/5d39d2cbf265da1bc23fbd42)<br>
@@ -25,14 +25,14 @@ TODO:
 
 ## vscode 调试 koa 源码方法
 
-之前，笔者在知乎回答了一个问题[一年内的前端看不懂前端框架源码怎么办？](https://www.zhihu.com/question/350289336/answer/910970733)
+之前，我在知乎回答了一个问题[一年内的前端看不懂前端框架源码怎么办？](https://www.zhihu.com/question/350289336/answer/910970733)
 推荐了一些资料，阅读量还不错，大家有兴趣可以看看。主要有四点：<br>
 >1.借助调试<br>
 >2.搜索查阅相关高赞文章<br>
 >3.把不懂的地方记录下来，查阅相关文档<br>
 >4.总结<br>
 
-看源码，调试很重要，所以笔者详细写下 `axios` 源码调试方法，帮助一些可能不知道如何调试的读者。
+看源码，调试很重要，所以我详细写下 `axios` 源码调试方法，帮助一些可能不知道如何调试的读者。
 
 ```bash
 git clone https://github.com/koajs/koa.git
@@ -94,13 +94,32 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的。
 
+### 先看 new Koa() 结果是什么
+
+看示例文件路径
+`koa-analysis/examples/compose/app.js`，
+
+```js
+const compose = require('koa-compose');
+const Koa = require('../../koa/lib/application');
+const app = module.exports = new Koa();
+
+console.log({koa: app}, 'app-new-koa()');
+```
+
+开始有这么几行代码，我们先不研究具体实现。先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
+
+TODO: 画图。
+
+### componse
+
 ```js
 const compose = require('koa-compose');
 const Koa = require('../../koa/lib/application');
 // const Koa = require('koa');
 const app = module.exports = new Koa();
 
-console.log(app, 'app-new-koa()');
+console.log({koa: app}, 'app-new-koa()');
 // x-response-time
 
 async function responseTime(ctx, next) {
@@ -157,7 +176,7 @@ if (!module.parent) app.listen(3000);
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
 [思否@RickyLong 高质量 - Koa 源码解析](https://segmentfault.com/a/1190000021109975)
 
-## 笔者另一个系列
+## 另一个系列
 
 [面试官问：JS的继承](https://juejin.im/post/5c433e216fb9a049c15f841b)<br>
 [面试官问：JS的this指向](https://juejin.im/post/5c0c87b35188252e8966c78a)<br>
@@ -176,6 +195,6 @@ if (!module.parent) app.listen(3000);
 
 ## 欢迎加微信交流 微信公众号
 
-可能比较有趣的微信公众号，长按扫码关注。欢迎加笔者微信`lxchuan12`（注明来源，基本来者不拒），拉您进【前端视野交流群】，长期交流学习~
+可能比较有趣的微信公众号，长按扫码关注。欢迎加我微信`lxchuan12`（注明来源，基本来者不拒），拉您进【前端视野交流群】，长期交流学习~
 
 ![若川视野](https://github.com/lxchuan12/blog/raw/master/docs/about/wechat-official-accounts-mini.jpg)
