@@ -23,6 +23,9 @@ TODO:
 
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
+TODO: 导读：
+koa洋葱模型怎么实现的。
+
 ## vscode 调试 koa 源码方法
 
 之前，我在知乎回答了一个问题[一年内的前端看不懂前端框架源码怎么办？](https://www.zhihu.com/question/350289336/answer/910970733)
@@ -80,7 +83,7 @@ npm i
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/examples/compose/app.js"
+            "program": "${workspaceFolder}/koa/examples/middleware/app.js"
         }
     ]
 }
@@ -92,9 +95,17 @@ npm i
 git clone https://github.com/lxchuan12/koa-analysis.git
 ```
 
-上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的。
+上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的，也可以用`chrome`调试。
+
+简单说下chrome调试，`chrome`浏览器打开`chrome://inspect`，点击配置**configure...**配置`127.0.0.1:端口号`(端口号在Vscode 调试控制台显示了)。
+
+更多可以查看[English Debugging Guide](https://nodejs.org/en/docs/inspector)
+
+[中文调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
 
 ### 先看 new Koa() 结果是什么
+
+看源码我习惯性看**它的实例对象结构**。
 
 看示例文件路径
 `koa-analysis/examples/compose/app.js`，
@@ -104,65 +115,109 @@ const compose = require('koa-compose');
 const Koa = require('../../koa/lib/application');
 const app = module.exports = new Koa();
 
-console.log({koa: app}, 'app-new-koa()');
+console.log('app-new-koa():', {koaInstance: app});
 ```
 
 开始有这么几行代码，我们先不研究具体实现。先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
 
 TODO: 画图。
 
-### componse
+### componse 例子
 
+[Koa文档中的一张gif图](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)
+
+![中间件gif图](./images/middleware.gif)
+如果您是前端开发人员，您可以将 next(); 之前的任意代码视为“捕获”阶段，这个简易的 gif 说明了 async 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
+
+   1. 创建一个跟踪响应时间的日期
+   2. 等待下一个中间件的控制
+   3. 创建另一个日期跟踪持续时间
+   4. 等待下一个中间件的控制
+   5. 将响应主体设置为“Hello World”
+   6. 计算持续时间
+   7. 输出日志行
+   8. 计算响应时间
+   9. 设置 `X-Response-Time` 头字段
+   10. 交给 Koa 处理响应
+  
 ```js
-const compose = require('koa-compose');
-const Koa = require('../../koa/lib/application');
-// const Koa = require('koa');
-const app = module.exports = new Koa();
+const Koa = require('../../lib/application');
 
-console.log({koa: app}, 'app-new-koa()');
+// const Koa = require('koa');
+
+const app = new Koa();
+
 // x-response-time
 
-async function responseTime(ctx, next) {
-  const start = new Date();
+app.use(async (ctx, next) => {
+  const start = Date.now();
   await next();
-  const ms = new Date() - start;
-  ctx.set('X-Response-Time', ms + 'ms');
-}
+  const ms = Date.now() - start;
+  ctx.set('X-Response-Time', `${ms}ms`);
+});
 
 // logger
 
-async function logger(ctx, next) {
-  const start = new Date();
+app.use(async (ctx, next) => {
+  const start = Date.now();
   await next();
-  const ms = new Date() - start;
-  if ('test' != process.env.NODE_ENV) {
-    console.log('%s %s - %s', ctx.method, ctx.url, ms);
-  }
-}
+  const ms = Date.now() - start;
+  console.log(`${ctx.method} ${ctx.url} - ${ms}`);
+});
 
 // response
 
-async function respond(ctx, next) {
-  await next();
-  if ('/' != ctx.url) return;
+app.use(async ctx => {
   ctx.body = 'Hello World';
-}
+});
 
-// composed middleware
-
-const all = compose([
-  responseTime,
-  logger,
-  respond
-]);
-
-app.use(all);
-
-if (!module.parent) app.listen(3000);
+app.listen(3000);
 ```
 
-![中间件gif图](./images/middleware.gif)
+## compose 源码
 
+```js
+/**
+ * Compose `middleware` returning
+ * a fully valid middleware comprised
+ * of all those which are passed.
+ *
+ * @param {Array} middleware
+ * @return {Function}
+ * @api public
+ */
+
+function compose (middleware) {
+  if (!Array.isArray(middleware)) throw new TypeError('Middleware stack must be an array!')
+  for (const fn of middleware) {
+    if (typeof fn !== 'function') throw new TypeError('Middleware must be composed of functions!')
+  }
+
+  /**
+   * @param {Object} context
+   * @return {Promise}
+   * @api public
+   */
+
+  return function (context, next) {
+    // last called middleware #
+    let index = -1
+    return dispatch(0)
+    function dispatch (i) {
+      if (i <= index) return Promise.reject(new Error('next() called multiple times'))
+      index = i
+      let fn = middleware[i]
+      if (i === middleware.length) fn = next
+      if (!fn) return Promise.resolve()
+      try {
+        return Promise.resolve(fn(context, dispatch.bind(null, i + 1)));
+      } catch (err) {
+        return Promise.reject(err)
+      }
+    }
+  }
+}
+```
 
 ## 源码
 
