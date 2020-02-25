@@ -1,6 +1,3 @@
-const Koa = require('../../lib/application');
-
-// const Koa = require('koa');
 const app = new Koa();
 
 // x-response-time
