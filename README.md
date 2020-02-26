@@ -1,4 +1,4 @@
-# 学习 koa 源码的整体架构，打造属于自己的nodejs库
+# 学习 koa 源码的整体架构，可能是最好懂的koa中间件分析
 
 ## 前言
 
@@ -122,23 +122,24 @@ console.log('app-new-koa():', {koaInstance: app});
 
 TODO: 画图。
 
-### componse 例子
+### koa-componse 例子
 
-[Koa文档中的一张gif图](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)
+学习 `koa-componse` 前，
+引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
 
+如果您是前端开发人员，您可以将 `next()`; 之前的任意代码视为“捕获”阶段，这个简易的 `gif` 说明了 async 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
 ![中间件gif图](./images/middleware.gif)
-如果您是前端开发人员，您可以将 next(); 之前的任意代码视为“捕获”阶段，这个简易的 gif 说明了 async 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
-
-   1. 创建一个跟踪响应时间的日期
-   2. 等待下一个中间件的控制
-   3. 创建另一个日期跟踪持续时间
-   4. 等待下一个中间件的控制
-   5. 将响应主体设置为“Hello World”
-   6. 计算持续时间
-   7. 输出日志行
-   8. 计算响应时间
-   9. 设置 `X-Response-Time` 头字段
-   10. 交给 Koa 处理响应
+>
+>   1. 创建一个跟踪响应时间的日期
+>   2. 等待下一个中间件的控制
+>   3. 创建另一个日期跟踪持续时间
+>   4. 等待下一个中间件的控制
+>   5. 将响应主体设置为“Hello World”
+>   6. 计算持续时间
+>   7. 输出日志行
+>   8. 计算响应时间
+>   9. 设置 `X-Response-Time` 头字段
+>   10. 交给 Koa 处理响应
   
 ```js
 const Koa = require('../../lib/application');
@@ -174,7 +175,7 @@ app.use(async ctx => {
 app.listen(3000);
 ```
 
-## compose 源码
+## koa-compose 源码
 
 ```js
 /**
