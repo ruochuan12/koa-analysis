@@ -24,7 +24,7 @@ TODO:
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
 TODO: 导读：
-koa洋葱模型怎么实现的。
+koa2洋葱模型怎么实现的。
 
 ## vscode 调试 koa 源码方法
 
@@ -35,7 +35,8 @@ koa洋葱模型怎么实现的。
 >3.把不懂的地方记录下来，查阅相关文档<br>
 >4.总结<br>
 
-看源码，调试很重要，所以我详细写下 `axios` 源码调试方法，帮助一些可能不知道如何调试的读者。
+
+看源码，调试很重要，所以我详细写下 `koa` 源码调试方法，帮助一些可能不知道如何调试的读者。
 
 ```bash
 git clone https://github.com/koajs/koa.git
@@ -60,12 +61,9 @@ git clone https://github.com/koajs/koa.git
 git clone https://github.com/koajs/examples.git
 ```
 
-这时再把`examples`克隆到自己电脑。本文就是通过这个`examples`文件夹中的例子，来调试阅读源码的。
+这时再开心的把`examples`克隆到自己电脑。可以安装好依赖，逐个研究学习下这里的例子，然后可能就一不小心掌握了`koa`的基本用法。当然，我这里不写这一块了。
 
-```bash
-# 给examples 和 koa 两个目录安装依赖
-npm i
-```
+继续看
 
 `koa` 洋葱模型比较重要，本文就根据`examples`中的`compose`例子来调试阅读源码。用`vscode`，打开`koa-analysis/examples/compose/app.js`文件。按`F5`打开调试模式。
 
@@ -103,7 +101,7 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 [中文调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
 
-### 先看 new Koa() 结果是什么
+## 先看 new Koa() 结果是什么
 
 看源码我习惯性看**它的实例对象结构**。
 
@@ -122,12 +120,12 @@ console.log('app-new-koa():', {koaInstance: app});
 
 TODO: 画图。
 
-### koa-componse 例子
+## 文档中的 中间件（koa-componse）例子
 
 学习 `koa-componse` 前，
 引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
 
-如果您是前端开发人员，您可以将 `next()`; 之前的任意代码视为“捕获”阶段，这个简易的 `gif` 说明了 async 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
+如果您是前端开发人员，您可以将 `next()`; 之前的任意代码视为“捕获”阶段，这个简易的 `gif` 说明了 `async` 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
 ![中间件gif图](./images/middleware.gif)
 >
 >   1. 创建一个跟踪响应时间的日期
@@ -140,7 +138,9 @@ TODO: 画图。
 >   8. 计算响应时间
 >   9. 设置 `X-Response-Time` 头字段
 >   10. 交给 Koa 处理响应
-  
+
+看到这个`gif`图，我把之前写的`examples/koa-compose`的调试方法含泪删除了。默默写上`gif`图上的这些代码，想着这个读者们更容易读懂。
+
 ```js
 const Koa = require('../../lib/application');
 
@@ -174,6 +174,50 @@ app.use(async ctx => {
 
 app.listen(3000);
 ```
+
+通过`F10、F11`调试完整体其实比较容易整理出如下主流程的代码。
+
+```js
+class Emitter{
+  // node 内置模块
+  constructor(){
+  }
+}
+class Koa extends Emitter{
+  constructor(options){
+    super();
+    options = options || {};
+    this.middleware = [];
+    this.context = {
+      method: 'GET',
+      url: '/url',
+      body: undefined,
+      set: function(key, val){
+        console.log('context.set', key, val);
+      },
+    };
+  }
+  use(fn){
+    this.middleware.push(fn);
+    return this;
+  }
+  listen(){
+    const  fnMiddleware = compose(this.middleware);
+    const ctx = this.context;
+    const handleResponse = () => respond(ctx);
+    const onerror = function(){
+      console.log('onerror');
+    };
+    return fnMiddleware(ctx).then(handleResponse).catch(onerror);
+  }
+}
+function respond(ctx){
+  console.log('handleResponse');
+  console.log('response.end', ctx.body);
+}
+```
+
+重点就在`compose`这个函数，接下来我们就详细来欣赏下这个函数。
 
 ## koa-compose 源码
 
@@ -220,6 +264,10 @@ function compose (middleware) {
 }
 ```
 
+不得不说惊艳，“玩还是作者会玩”。
+
+搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
+
 ## 源码
 
 ## 推荐阅读
@@ -231,6 +279,7 @@ function compose (middleware) {
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
 [思否@RickyLong 高质量 - Koa 源码解析](https://segmentfault.com/a/1190000021109975)
+[berwin: 深入浅出 Koa2 原理](https://github.com/berwin/Blog/issues/9)
 
 ## 另一个系列
 
