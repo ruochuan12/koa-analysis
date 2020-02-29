@@ -15,16 +15,18 @@
 >5.[学习 vuex 源码整体架构，打造属于自己的状态管理库](https://juejin.im/post/5dd4e61a6fb9a05a5c010af0)<br>
 >6.[学习 axios 源码整体架构，打造属于自己的请求库](https://juejin.im/post/5df349b5518825123751ba66)<br>
 
-感兴趣的读者可以点击阅读。计划中：`express`、`vue-rotuer`源码。
+感兴趣的读者可以点击阅读。计划中：`express`、`vue-rotuer`源码，欢迎持续关注。
 
 本文学习的`koa`版本是`v2.11.0`。克隆的官方仓库的`master`分支。
 TODO:
-截至目前（2020年2月2日），最新一次`commit`是`2019-12-09 15:52 ZhaoXC` `dc4bc49673943e352`，`fix: fix ignore set withCredentials false (#2582)`。
+截至目前（2020年2月29日），最新一次`commit`是`2020-01-04 07:41 Olle Jonsson` `eda27608`，`build: Drop unused Travis sudo: false directive (#1416)`。
 
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
 TODO: 导读：
-koa2洋葱模型怎么实现的。
+如果你简历上一不小心写了`koa2`，面试官大概率会问：
+>`koa2`洋葱模型怎么实现的。
+>如果中间件中的`next()`方法报错了会怎样。
 
 ## vscode 调试 koa 源码方法
 
@@ -34,7 +36,6 @@ koa2洋葱模型怎么实现的。
 >2.搜索查阅相关高赞文章<br>
 >3.把不懂的地方记录下来，查阅相关文档<br>
 >4.总结<br>
-
 
 看源码，调试很重要，所以我详细写下 `koa` 源码调试方法，帮助一些可能不知道如何调试的读者。
 
@@ -61,68 +62,13 @@ git clone https://github.com/koajs/koa.git
 git clone https://github.com/koajs/examples.git
 ```
 
-这时再开心的把`examples`克隆到自己电脑。可以安装好依赖，逐个研究学习下这里的例子，然后可能就一不小心掌握了`koa`的基本用法。当然，我这里不写这一块了。
+这时再开心的把`examples`克隆到自己电脑。可以安装好依赖，逐个研究学习下这里的例子，然后可能就一不小心掌握了`koa`的基本用法。当然，我这里不详细写这一块了。
 
-继续看
+继续看文档会发现**使用指南**讲述`编写中间件`。
 
-`koa` 洋葱模型比较重要，本文就根据`examples`中的`compose`例子来调试阅读源码。用`vscode`，打开`koa-analysis/examples/compose/app.js`文件。按`F5`打开调试模式。
+## 使用文档中的 中间件（koa-compose）例子来调试
 
-```json
-{
-    // 使用 IntelliSense 了解相关属性。 
-    // 悬停以查看现有属性的描述。
-    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "启动程序",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/koa/examples/middleware/app.js"
-        }
-    ]
-}
-```
-
-读者可以直接克隆我的代码来学习。
-
-```bash
-git clone https://github.com/lxchuan12/koa-analysis.git
-```
-
-上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的，也可以用`chrome`调试。
-
-简单说下chrome调试，`chrome`浏览器打开`chrome://inspect`，点击配置**configure...**配置`127.0.0.1:端口号`(端口号在Vscode 调试控制台显示了)。
-
-更多可以查看[English Debugging Guide](https://nodejs.org/en/docs/inspector)
-
-[中文调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
-
-## 先看 new Koa() 结果是什么
-
-看源码我习惯性看**它的实例对象结构**。
-
-看示例文件路径
-`koa-analysis/examples/compose/app.js`，
-
-```js
-const compose = require('koa-compose');
-const Koa = require('../../koa/lib/application');
-const app = module.exports = new Koa();
-
-console.log('app-new-koa():', {koaInstance: app});
-```
-
-开始有这么几行代码，我们先不研究具体实现。先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
-
-TODO: 画图。
-
-## 文档中的 中间件（koa-componse）例子
-
-学习 `koa-componse` 前，
+学习 `koa-compose` 前，
 引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
 
 如果您是前端开发人员，您可以将 `next()`; 之前的任意代码视为“捕获”阶段，这个简易的 `gif` 说明了 `async` 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
@@ -140,6 +86,10 @@ TODO: 画图。
 >   10. 交给 Koa 处理响应
 
 看到这个`gif`图，我把之前写的`examples/koa-compose`的调试方法含泪删除了。默默写上`gif`图上的这些代码，想着这个读者们更容易读懂。
+我把这段代码写在这里 [`koa/examples/middleware/app.js`](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/middleware/app.js)便于调试。
+
+<details>
+<summary>gif图中的代码，点击这里展开，可以复制</summary>
 
 ```js
 const Koa = require('../../lib/application');
@@ -175,7 +125,56 @@ app.use(async ctx => {
 app.listen(3000);
 ```
 
-通过`F10、F11`调试完整体其实比较容易整理出如下主流程的代码。
+</details>
+
+`koa` 洋葱模型比较重要，用`vscode`，按`koa/examples/middleware/app.js`文件。按`F5`打开调试模式。
+
+在项目路径下配置新建[.vscode/launch.json](https://github.com/lxchuan12/koa-analysis/blob/master/.vscode/launch.json)文件，`program`配置为自己写的`koa/examples/middleware/app.js`文件，按`F5键`开始调试。
+
+<details>
+<summary>.vscode/launch.json 代码，点击这里展开，可以复制</summary>
+
+```json
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "启动程序",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/koa/examples/middleware/app.js"
+        }
+    ]
+}
+```
+
+</details>
+
+读者可以直接克隆我的代码来学习。
+
+```bash
+git clone https://github.com/lxchuan12/koa-analysis.git
+```
+
+上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。
+
+简单说下`chrome`调试，`chrome`浏览器打开`chrome://inspect`，点击配置**configure...**配置`127.0.0.1:端口号`(端口号在Vscode 调试控制台显示了)。
+
+更多可以查看[English Debugging Guide](https://nodejs.org/en/docs/inspector)
+
+[中文调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
+
+更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的，也可以用`chrome`调试。
+
+## koa 主流程梳理简化
+
+通过`F5`、`F10、F11`调试完整体其实比较容易整理出如下主流程的代码。
 
 ```js
 class Emitter{
@@ -208,7 +207,7 @@ class Koa extends Emitter{
     const onerror = function(){
       console.log('onerror');
     };
-    return fnMiddleware(ctx).then(handleResponse).catch(onerror);
+    fnMiddleware(ctx).then(handleResponse).catch(onerror);
   }
 }
 function respond(ctx){
@@ -264,9 +263,36 @@ function compose (middleware) {
 }
 ```
 
+把简化的代码和`koa-compose`代码写在了一个文件中。[koa/examples/simpleKoa/index.js](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/simpleKoa/index.js)
+
+```bash
+npm i http-server -g
+```
+
 不得不说惊艳，“玩还是作者会玩”。
 
+这种把函数存储下来的方式，在很多源码中都有看到。比如`lodash`源码的惰性求值，`vuex`也是把`action`等函数存储下，最后才去调用。
+
 搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
+
+## 先看 new Koa() 结果是什么
+
+看源码我习惯性看**它的实例对象结构**。
+
+看示例文件路径
+`koa-analysis/examples/compose/app.js`，
+
+```js
+const compose = require('koa-compose');
+const Koa = require('../../koa/lib/application');
+const app = module.exports = new Koa();
+
+console.log('app-new-koa():', {koaInstance: app});
+```
+
+开始有这么几行代码，我们先不研究具体实现。先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
+
+TODO: 画图。
 
 ## 源码
 
