@@ -24,7 +24,7 @@ TODO:
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
 TODO: 导读：
-如果你简历上一不小心写了`koa2`，面试官大概率会问：
+如果你简历上一不小心写了熟悉`koa2`，面试官大概率会问：
 >`koa2`洋葱模型怎么实现的。
 >如果中间件中的`next()`方法报错了会怎样。
 
@@ -263,7 +263,7 @@ function compose (middleware) {
 }
 ```
 
-把简化的代码和`koa-compose`代码写在了一个文件中。[koa/examples/simpleKoa/index.js](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/simpleKoa/index.js)
+把简化的代码和`koa-compose`代码写在了一个文件中。[koa/examples/simpleKoa/koa-compose.js](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/simpleKoa/koa-compose.js)
 
 ```bash
 npm i http-server -g
