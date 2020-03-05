@@ -66,7 +66,7 @@ git clone https://github.com/koajs/examples.git
 
 继续看文档会发现**使用指南**讲述`编写中间件`。
 
-## 使用文档中的 中间件（koa-compose）例子来调试
+## 使用文档中的中间件（koa-compose）例子来调试
 
 学习 `koa-compose` 前，
 引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
@@ -89,7 +89,7 @@ git clone https://github.com/koajs/examples.git
 我把这段代码写在这里 [`koa/examples/middleware/app.js`](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/middleware/app.js)便于调试。
 
 <details>
-<summary>gif图中的代码，点击这里展开，可以复制</summary>
+<summary>gif图中的代码，点击这里展开/收缩，可以复制</summary>
 
 ```js
 const Koa = require('../../lib/application');
@@ -132,7 +132,7 @@ app.listen(3000);
 在项目路径下配置新建[.vscode/launch.json](https://github.com/lxchuan12/koa-analysis/blob/master/.vscode/launch.json)文件，`program`配置为自己写的`koa/examples/middleware/app.js`文件，按`F5键`开始调试。
 
 <details>
-<summary>.vscode/launch.json 代码，点击这里展开，可以复制</summary>
+<summary>.vscode/launch.json 代码，点击这里展开/收缩，可以复制</summary>
 
 ```json
 {
@@ -174,7 +174,7 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 ## koa 主流程梳理简化
 
-通过`F5`、`F10、F11`调试完整体其实比较容易整理出如下主流程的代码。
+通过`F5`、`F10单步跳过、F11单步调试`调试完整体其实比较容易整理出如下主流程的代码。
 
 ```js
 class Emitter{
@@ -266,8 +266,18 @@ function compose (middleware) {
 把简化的代码和`koa-compose`代码写在了一个文件中。[koa/examples/simpleKoa/koa-compose.js](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/simpleKoa/koa-compose.js)
 
 ```bash
+# 克隆我的这个仓库
+git clone https://github.com/lxchuan12/koa-analysis.git
+# 安装 http-server 启动服务的 npm 包
 npm i http-server -g
+# 启动服务，默认端口8080
+hs koa/examples/simpleKoa/
+# 也可以指定端口
+# hs -p 3000 koa/examples/simpleKoa/
+# 然后可以打开localhost:8080，开心的把代码调试起来
 ```
+
+不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心。
 
 不得不说惊艳，“玩还是作者会玩”。
 
@@ -275,7 +285,7 @@ npm i http-server -g
 
 搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
 
-## 先看 new Koa() 结果是什么
+## 继续看 new Koa() 结果是什么
 
 看源码我习惯性看**它的实例对象结构**。
 
