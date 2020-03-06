@@ -15,7 +15,8 @@
 >5.[学习 vuex 源码整体架构，打造属于自己的状态管理库](https://juejin.im/post/5dd4e61a6fb9a05a5c010af0)<br>
 >6.[学习 axios 源码整体架构，打造属于自己的请求库](https://juejin.im/post/5df349b5518825123751ba66)<br>
 
-感兴趣的读者可以点击阅读。计划中：`express`、`vue-rotuer`源码，欢迎持续关注。
+感兴趣的读者可以点击阅读。<br>
+其他源码计划中的有：[`express`](https://github.com/lxchuan12/express-analysis)、[`vue-rotuer`](https://github.com/lxchuan12/vue-router-analysis)、[`redux`](https://github.com/lxchuan12/redux-analysis)、  [`react-redux`](https://github.com/lxchuan12/react-redux-analysis) 等源码，不知何时能写完，欢迎持续关注我（若川）。
 
 本文学习的`koa`版本是`v2.11.0`。克隆的官方仓库的`master`分支。
 TODO:
@@ -170,11 +171,11 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 [中文调试指南](https://nodejs.org/zh-cn/docs/guides/debugging-getting-started/)
 
-更多调试相关也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的，也可以用`chrome`调试。
+喜欢看视频的读者也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的。
 
 ## koa 主流程梳理简化
 
-通过`F5`、`F10单步跳过、F11单步调试`调试完整体其实比较容易整理出如下主流程的代码。
+通过`F5启动调试`、`F10单步跳过`、`F11单步调试`调试完整体代码，其实比较容易整理出如下主流程的代码。
 
 ```js
 class Emitter{
@@ -277,17 +278,13 @@ hs koa/examples/simpleKoa/
 # 然后可以打开localhost:8080，开心的把代码调试起来
 ```
 
-不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心。
+不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心^_^
 
 不得不说惊艳，“玩还是作者会玩”。
 
 这种把函数存储下来的方式，在很多源码中都有看到。比如`lodash`源码的惰性求值，`vuex`也是把`action`等函数存储下，最后才去调用。
 
 搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
-
-## koa-convert
-
-## co
 
 ## 继续看 new Koa() 结果是什么
 
@@ -308,7 +305,39 @@ console.log('app-new-koa():', {koaInstance: app});
 
 TODO: 画图。
 
-## 源码
+[index API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/index.md)
+
+## context
+
+[context API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/context.md)
+
+## request
+
+[request API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/request.md)
+
+## response
+
+[response API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/response.md)
+
+## koa2 和 koa1 的对比
+
+### koa-convert 源码
+
+### co 源码
+
+## koa 和 express 对比
+
+[文档 koa 和 express 对比](https://github.com/demopark/koa-docs-Zh-CN/blob/master/koa-vs-express.md)
+
+文档里写的挺全面的。简单来说`koa2`语法更先进，更容易深度定制（`egg.js`、`think.js`、底层框架都是`koa`）。
+
+## 总结
+
+`promise`链式调用。
+
+主要总结四个核心概念，请求上下文（context）、请求对象、响应对象、中间件。
+
+HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需掌握。
 
 ## 推荐阅读
 
