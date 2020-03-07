@@ -175,7 +175,7 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 ## koa 主流程梳理简化
 
-通过`F5启动调试`、`F10单步跳过`、`F11单步调试`调试完整体代码，其实比较容易整理出如下主流程的代码。
+通过`F5启动调试`、`F10单步跳过`、`F11单步调试`，配合重要的地方断点，调试完整体代码，其实比较容易整理出如下主流程的代码。
 
 ```js
 class Emitter{
@@ -278,7 +278,7 @@ hs koa/examples/simpleKoa/
 # 然后可以打开localhost:8080，开心的把代码调试起来
 ```
 
-不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心^_^
+不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心^_^，自己多调试几遍便于消化理解。
 
 不得不说惊艳，“玩还是作者会玩”。
 
@@ -331,11 +331,13 @@ TODO: 画图。
 
 文档里写的挺全面的。简单来说`koa2`语法更先进，更容易深度定制（`egg.js`、`think.js`、底层框架都是`koa`）。
 
+web 框架有很多，比如`Express.js`，`Koa.js`、`Egg.js`、`Nest.js`、`Next.js`、`Fastify.js`、`Hapi.js`、`Restify.js`、`Loopback.io`、`Sails.js`、`Midway.js`等等。
+
 ## 总结
 
 `promise`链式调用。
 
-主要总结四个核心概念，请求上下文（context）、请求对象、响应对象、中间件。
+主要总结四个核心概念，中间件，http请求上下文（context）、http请求对象、响应对象。
 
 HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需掌握。
 
@@ -344,6 +346,7 @@ HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需掌握。
 [知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [koa 官网](https://koajs.com/)<br>
 [koa 仓库](https://github.com/koajs/koa)<br>
+[koa 组织](https://github.com/koajs)<br>
 [koa2 中文文档](https://github.com/demopark/koa-docs-Zh-CN)<br>
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
