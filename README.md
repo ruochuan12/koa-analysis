@@ -175,7 +175,11 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 ## koa 主流程梳理简化
 
-通过`F5启动调试`、`F10单步跳过`、`F11单步调试`，配合重要的地方断点，调试完整体代码，其实比较容易整理出如下主流程的代码。
+通过`F5启动调试`、`F10单步跳过`、`F11单步调试`等，配合重要的地方断点，调试完整体代码，其实比较容易整理出如下主流程的代码。
+
+>**断点调试要领：**<br>
+**赋值语句可以一步跳过，看返回值即可，后续详细再看。**<br>
+**函数执行需要断点跟着看，也可以结合注释和上下文倒推这个函数做了什么。**<br>
 
 ```js
 class Emitter{
@@ -278,13 +282,15 @@ hs koa/examples/simpleKoa/
 # 然后可以打开localhost:8080，开心的把代码调试起来
 ```
 
-不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，直接可以在线调试啦。是不是觉得很贴心^_^，自己多调试几遍便于消化理解。
+不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，**直接可以在线调试啦**。是不是觉得很贴心^_^，自己多调试几遍便于消化理解。
 
-不得不说惊艳，“玩还是作者会玩”。
+不得不说非常惊艳，“玩还是作者会玩”。
 
 这种把函数存储下来的方式，在很多源码中都有看到。比如`lodash`源码的惰性求值，`vuex`也是把`action`等函数存储下，最后才去调用。
 
 搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
+
+## 错误处理 TODO:
 
 ## 继续看 new Koa() 结果是什么
 
@@ -339,19 +345,19 @@ web 框架有很多，比如`Express.js`，`Koa.js`、`Egg.js`、`Nest.js`、`Ne
 
 主要总结四个核心概念，中间件，http请求上下文（context）、http请求对象、响应对象。
 
-HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需掌握。
+HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需深入学习掌握。
 
 ## 推荐阅读
 
-[知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [koa 官网](https://koajs.com/)<br>
 [koa 仓库](https://github.com/koajs/koa)<br>
 [koa 组织](https://github.com/koajs)<br>
 [koa2 中文文档](https://github.com/demopark/koa-docs-Zh-CN)<br>
+[知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
-[思否@RickyLong 高质量 - Koa 源码解析](https://segmentfault.com/a/1190000021109975)
-[berwin: 深入浅出 Koa2 原理](https://github.com/berwin/Blog/issues/9)
+[IVWEB官方账号: KOA2框架原理解析和实现](https://ivweb.io/article.html?_id=100334)
+[深入浅出vue.js 作者 berwin: 深入浅出 Koa2 原理](https://github.com/berwin/Blog/issues/9)
 
 ## 另一个系列
 
