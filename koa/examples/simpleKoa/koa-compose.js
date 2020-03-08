@@ -1,10 +1,13 @@
 // koa-compose
 function compose (middleware) {
   // 校验middleware 是数组和数组每一项都是函数的校验
+
   if (!Array.isArray(middleware)) throw new TypeError('Middleware stack must be an array!')
   for (const fn of middleware) {
     if (typeof fn !== 'function') throw new TypeError('Middleware must be composed of functions!')
   }
+
+
   return function (context, next) {
     // last called middleware #
     let index = -1
