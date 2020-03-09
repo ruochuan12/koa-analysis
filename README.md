@@ -44,8 +44,6 @@ TODO: 导读：
 git clone https://github.com/koajs/koa.git
 ```
 
-克隆源码后，看`package.json`找到`main`，就知道入口文件是`lib/application.js`了。
-
 ```json
 // package.json
 {
@@ -55,6 +53,8 @@ git clone https://github.com/koajs/koa.git
   "main": "lib/application.js",
 }
 ```
+
+克隆源码后，看`package.json`找到`main`，就知道入口文件是`lib/application.js`了。
 
 大概看完项目结构后发现没有`examples`文件夹（一般项目都会有这个文件夹，告知用户如何使用该项目），这时仔细看`README.md`。
 如果看英文`README.md`有些吃力，会发现在`Community`标题下有一个[中文文档 v2.x](https://github.com/demopark/koa-docs-Zh-CN)。同时也有一个[`examples`仓库](https://github.com/koajs/examples)。
@@ -157,7 +157,7 @@ app.listen(3000);
 
 </details>
 
-读者可以直接克隆我的代码来学习。
+读者可以直接克隆我的代码仓库来学习。
 
 ```bash
 git clone https://github.com/lxchuan12/koa-analysis.git
@@ -221,7 +221,7 @@ function respond(ctx){
 }
 ```
 
-重点就在`compose`这个函数，接下来我们就详细来欣赏下这个函数。
+重点就在`compose`这个函数，接下来我们就详细来**欣赏**下这个函数。
 
 ## koa-compose 源码
 
@@ -356,8 +356,9 @@ HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需深入学�
 [知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
-[IVWEB官方账号: KOA2框架原理解析和实现](https://ivweb.io/article.html?_id=100334)
-[深入浅出vue.js 作者 berwin: 深入浅出 Koa2 原理](https://github.com/berwin/Blog/issues/9)
+[IVWEB官方账号: KOA2框架原理解析和实现](https://ivweb.io/article.html?_id=100334)<br>
+[深入浅出vue.js 作者 berwin: 深入浅出 Koa2 原理](https://github.com/berwin/Blog/issues/9)<br>
+[阮一峰老师：co 函数库的含义和用法](http://www.ruanyifeng.com/blog/2015/05/co.html)<br>
 
 ## 另一个系列
 
