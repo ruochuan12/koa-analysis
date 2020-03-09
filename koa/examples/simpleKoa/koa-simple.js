@@ -22,8 +22,9 @@ class Koa extends Emitter{
     return this;
   }
   listen(){
-    // const  fnMiddleware = compose(this.middleware);
+    const  fnMiddleware = compose(this.middleware);
 
+    /**
     const [fn1, fn2, fn3] = this.middleware;
     const fnMiddleware = function(context){
         return Promise.resolve(
@@ -40,6 +41,7 @@ class Koa extends Emitter{
         })
       );
     };
+    */
 
     const ctx = this.context;
     const handleResponse = () => respond(ctx);

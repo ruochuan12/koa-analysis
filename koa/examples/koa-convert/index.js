@@ -1,9 +1,9 @@
 'use strict'
 
-const co = require('co')
-const compose = require('koa-compose')
+// const co = require('co')
+// const compose = require('koa-compose')
 
-module.exports = convert
+// module.exports = convert
 
 function convert (mw) {
   if (typeof mw !== 'function') {

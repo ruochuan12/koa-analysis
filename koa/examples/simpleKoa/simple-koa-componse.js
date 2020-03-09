@@ -1,6 +1,7 @@
-const  fnMiddleware = compose(this.middleware);
+// const  fnMiddleware = compose(this.middleware);
+// Promise.resolve(fn(context, dispatch.bind(null, i + 1)));
 
-fnMiddleware(ctx).then(handleResponse).catch(onerror);
+// fnMiddleware(ctx).then(handleResponse).catch(onerror);
 
 const [fn1, fn2, fn3] = this.middleware;
 const fnMiddleware = function(context){
@@ -18,8 +19,4 @@ const fnMiddleware = function(context){
     })
   );
 };
-
-Promise.resolve(fn(context, dispatch.bind(null, i + 1)));
-
-Promise.resolve(fn(context, dispatch.bind(null, i + 1)));
 
