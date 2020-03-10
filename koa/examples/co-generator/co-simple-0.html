@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>simple-co-1</title>
+</head>
+<body>
+<script src="request.js">
+</script>
+<script>
+  // await 函数 自动执行
+  async function asyncFunc(){
+      const res = await request();
+      console.log(res, 'asyncFunc-res await 函数 自动执行');
+  }
+  asyncFunc();
+</script>
+</body>
+</html>

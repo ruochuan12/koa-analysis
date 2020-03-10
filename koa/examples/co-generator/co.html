@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>generator</title>
+</head>
+<body>
+  <script src="request.js">
+  </script>
+  <script src="../koa-convert/co.js"></script>
+  <script>
+  function* generatorFunc(suffix = ''){
+    const res = yield request();
+    console.log(res, 'generatorFunc-res' + suffix);
+
+    const res2 = yield request();
+    console.log(res2, 'generatorFunc-res-2' + suffix);
+
+    const res3 = yield request();
+    console.log(res3, 'generatorFunc-res-3' + suffix);
+
+    const res4 = yield request();
+    console.log(res4, 'generatorFunc-res-4' + suffix);
+  }
+  </script>
+  <script>
+    co(generatorFunc, '哎呀，我被co调用了，我真的是后缀呀');
+  </script>
+</body>
+</html>

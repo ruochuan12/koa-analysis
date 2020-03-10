@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>simple-co-1</title>
+</head>
+<body>
+<script src="request.js">
+</script>
+<script>
+  // 获取generator的值
+  function* generatorFunc(){
+    const res = yield request();
+    console.log(res, 'generatorFunc-res');
+  }
+
+  function coSimple(gen){
+    gen = gen();
+    console.log(gen, 'gen');
+
+    const ret = gen.next();
+    const promise = ret.value;
+    promise.then(res => {
+      gen.next(res);
+    });
+  }
+  coSimple(generatorFunc);
+  // 输出了想要的结果
+  // {name: "若川"}"generatorFunc-res"
+</script>
+</body>
+</html>

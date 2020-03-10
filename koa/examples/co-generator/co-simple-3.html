@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>simple-co-2</title>
+</head>
+<body>
+  <script src="request.js">
+  </script>
+  <script>
+  function* generatorFunc(suffix = ''){
+    const res = yield request();
+    console.log(res, 'generatorFunc-res' + suffix);
+
+    const res2 = yield request();
+    console.log(res2, 'generatorFunc-res-2' + suffix);
+
+    const res3 = yield request();
+    console.log(res3, 'generatorFunc-res-3' + suffix);
+
+    const res4 = yield request();
+    console.log(res4, 'generatorFunc-res-4' + suffix);
+  }
+
+  function coSimple(gen){
+    const ctx = this;
+    const args = Array.prototype.slice.call(arguments, 1);
+    gen = gen.apply(ctx, args);
+    console.log(gen, 'gen');
+
+    return new Promise((resolve, reject) => {
+
+      onFulfilled();
+
+      function onFulfilled(res){
+        const ret = gen.next(res);
+        next(ret);
+      }
+
+      function next(ret) {
+        const promise = ret.value;
+        promise && promise.then(onFulfilled);
+      }
+
+    });
+  }
+
+  coSimple(generatorFunc, ' 哎呀，我真的是后缀');
+  </script>
+</body>
+</html>
