@@ -329,7 +329,269 @@ TODO: 画图。
 
 ### koa-convert 源码
 
+在`vscode/launch.json`，文件，找到这个`program`，`"program": "${workspaceFolder}/koa/examples/koa-convert/app.js"`。
+
+通过`F5启动调试`、`F10单步跳过`、`F11单步调试`调试走一遍流程。重要地方断点调试。
+
+`app.use`时有一层判断，是否是`generator`函数，没有则用`koa-convert`暴露的方法`convert`来转换重新赋值，再存入`middleware`，后续再使用。
+
+```js
+class Koa extends Emitter{
+  use(fn) {
+    if (typeof fn !== 'function') throw new TypeError('middleware must be a function!');
+    if (isGeneratorFunction(fn)) {
+      deprecate('Support for generators will be removed in v3. ' +
+                'See the documentation for examples of how to convert old middleware ' +
+                'https://github.com/koajs/koa/blob/master/docs/migration.md');
+      fn = convert(fn);
+    }
+    debug('use %s', fn._name || fn.name || '-');
+    this.middleware.push(fn);
+    return this;
+  }
+}
+```
+
+`koa-convert`源码挺多，核心代码其实是这样。
+
+```js
+function convert(){
+ return function (ctx, next) {
+    return co.call(ctx, mw.call(ctx, createGenerator(next)))
+  }
+  function * createGenerator (next) {
+    return yield next()
+  }
+}
+```
+
+最后还是通过`co`来转换的。所以接下来看`co`的源码。
+
 ### co 源码
+
+[co 仓库](https://github.com/tj/co)
+
+本小节的示例代码都在这个文件夹中，可以自行打开调试查看。
+
+TODO: 示例地址
+
+看`co`源码前，先看几段代码。
+
+```js
+// 写一个请求简版请求
+function request(ms= 1000) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({name: '若川'});
+    }, ms);
+  });
+}
+```
+
+```js
+// 获取generator的值
+function* generatorFunc(){
+  const res = yield request();
+  console.log(res, 'generatorFunc-res');
+}
+generatorFunc(); // 报告，我不会输出你想要的结果的
+```
+
+简单来说`co`，就是把`generator`自动执行，再返回一个`promise`。
+`generator`函数这玩意它不自动执行呀，还要一步步调用`next()`，也就是叫它走一步才走一步。
+
+所以有了`async、await`函数。
+
+```js
+// await 函数 自动执行
+async function asyncFunc(){
+    const res = await request();
+    console.log(res, 'asyncFunc-res await 函数 自动执行');
+}
+asyncFunc(); // 输出结果
+```
+
+也就是说`co`需要做的事情，是让`generator`向`async、await`函数一样自动执行。
+
+#### 模拟实现简版 co（第一版）
+
+这时，我们来模拟实现第一版的`co`。根据`generator`的特性，其实容易写出如下代码。
+
+```js
+// 获取generator的值
+function* generatorFunc(){
+  const res = yield request();
+  console.log(res, 'generatorFunc-res');
+}
+
+function coSimple(gen){
+  gen = gen();
+  console.log(gen, 'gen');
+
+  const ret = gen.next();
+  const promise = ret.value;
+  promise.then(res => {
+    gen.next(res);
+  });
+}
+coSimple(generatorFunc);
+// 输出了想要的结果
+// {name: "若川"}"generatorFunc-res"
+```
+
+#### 模拟实现简版 co（第二版）
+
+但是实际上，不会上面那么简单的。有可能是多个`yield`，和传参数的情况。
+传参可以通过
+`const args = Array.prototype.slice.call(arguments, 1);
+    gen = gen.apply(ctx, args);`
+来解决。
+两个`yield`，我大不了重新调用一下，搞定。
+
+```js
+// 多个yeild，传参情况
+function* generatorFunc(suffix = ''){
+  const res = yield request();
+  console.log(res, 'generatorFunc-res' + suffix);
+
+  const res2 = yield request();
+  console.log(res2, 'generatorFunc-res-2' + suffix);
+}
+
+function coSimple(gen){
+  const ctx = this;
+  const args = Array.prototype.slice.call(arguments, 1);
+  gen = gen.apply(ctx, args);
+  console.log(gen, 'gen');
+
+  const ret = gen.next();
+  const promise = ret.value;
+  promise.then(res => {
+    const ret = gen.next(res);
+    const promise = ret.value;
+      promise.then(res => {
+        gen.next(res);
+      });
+  });
+}
+
+coSimple(generatorFunc, ' 哎呀，我真的是后缀');
+```
+
+#### 模拟实现简版 co（第三版）
+
+问题是肯定不止两次，无限次的`yield`的呢，这时肯定要把重复的封装起来。而且返回是`promise`，这就实现了如下版本的代码。
+
+```js
+function* generatorFunc(suffix = ''){
+  const res = yield request();
+  console.log(res, 'generatorFunc-res' + suffix);
+
+  const res2 = yield request();
+  console.log(res2, 'generatorFunc-res-2' + suffix);
+
+  const res3 = yield request();
+  console.log(res3, 'generatorFunc-res-3' + suffix);
+
+  const res4 = yield request();
+  console.log(res4, 'generatorFunc-res-4' + suffix);
+}
+
+function coSimple(gen){
+  const ctx = this;
+  const args = Array.prototype.slice.call(arguments, 1);
+  gen = gen.apply(ctx, args);
+  console.log(gen, 'gen');
+
+  return new Promise((resolve, reject) => {
+
+    onFulfilled();
+
+    function onFulfilled(res){
+      const ret = gen.next(res);
+      next(ret);
+    }
+
+    function next(ret) {
+      const promise = ret.value;
+      promise && promise.then(onFulfilled);
+    }
+
+  });
+}
+
+coSimple(generatorFunc, ' 哎呀，我真的是后缀');
+```
+
+但第三版的模拟实现简版`co`中，还没有考虑报错、和一些参数合法的情况。
+
+最终来看下`co`源码。
+
+```js
+function co(gen) {
+  var ctx = this;
+  var args = slice.call(arguments, 1)
+
+  // we wrap everything in a promise to avoid promise chaining,
+  // which leads to memory leak errors.
+  // see https://github.com/tj/co/issues/180
+  return new Promise(function(resolve, reject) {
+    if (typeof gen === 'function') gen = gen.apply(ctx, args);
+    if (!gen || typeof gen.next !== 'function') return resolve(gen);
+
+    onFulfilled();
+
+    /**
+     * @param {Mixed} res
+     * @return {Promise}
+     * @api private
+     */
+
+    function onFulfilled(res) {
+      var ret;
+      try {
+        ret = gen.next(res);
+      } catch (e) {
+        return reject(e);
+      }
+      next(ret);
+    }
+
+    /**
+     * @param {Error} err
+     * @return {Promise}
+     * @api private
+     */
+
+    function onRejected(err) {
+      var ret;
+      try {
+        ret = gen.throw(err);
+      } catch (e) {
+        return reject(e);
+      }
+      next(ret);
+    }
+
+    /**
+     * Get the next value in the generator,
+     * return a promise.
+     *
+     * @param {Object} ret
+     * @return {Promise}
+     * @api private
+     */
+
+    function next(ret) {
+      if (ret.done) return resolve(ret.value);
+      var value = toPromise.call(ctx, ret.value);
+      if (value && isPromise(value)) return value.then(onFulfilled, onRejected);
+      return onRejected(new TypeError('You may only yield a function, promise, generator, array, or object, '
+        + 'but the following object was passed: "' + String(ret.value) + '"'));
+    }
+  });
+}
+```
 
 ## koa 和 express 对比
 
@@ -353,6 +615,7 @@ HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需深入学�
 [koa 仓库](https://github.com/koajs/koa)<br>
 [koa 组织](https://github.com/koajs)<br>
 [koa2 中文文档](https://github.com/demopark/koa-docs-Zh-CN)<br>
+[co 仓库](https://github.com/tj/co)<br>
 [知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
