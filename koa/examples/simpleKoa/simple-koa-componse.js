@@ -19,4 +19,4 @@ const fnMiddleware = function(context){
     })
   );
 };
-
+fnMiddleware(ctx).then(handleResponse).catch(onerror);
