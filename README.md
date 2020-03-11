@@ -1,4 +1,4 @@
-# 学习 koa 源码的整体架构，可能是最好懂的koa中间件分析
+# 学习 koa 源码的整体架构，可能是最好懂的koa中间件原理和co原理
 
 ## 前言
 
@@ -19,15 +19,38 @@
 其他源码计划中的有：[`express`](https://github.com/lxchuan12/express-analysis)、[`vue-rotuer`](https://github.com/lxchuan12/vue-router-analysis)、[`redux`](https://github.com/lxchuan12/redux-analysis)、  [`react-redux`](https://github.com/lxchuan12/react-redux-analysis) 等源码，不知何时能写完，欢迎持续关注我（若川）。
 
 本文学习的`koa`版本是`v2.11.0`。克隆的官方仓库的`master`分支。
-TODO:
-截至目前（2020年2月29日），最新一次`commit`是`2020-01-04 07:41 Olle Jonsson` `eda27608`，`build: Drop unused Travis sudo: false directive (#1416)`。
+截至目前（2020年3月11日），最新一次`commit`是`2020-01-04 07:41 Olle Jonsson` `eda27608`，`build: Drop unused Travis sudo: false directive (#1416)`。
 
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
+**本文阅读最佳方式**：先`star`一下我的仓库，再把它`git clone https://github.com/lxchuan12/koa-analysis.git`克隆下来。不用管你是否用过`nodejs`。会一点点`promise、generator、await`等知识即可看懂。如果一点点也不会，可以边看阮一峰老师的[《ES6标准入门》](https://es6.ruanyifeng.com/#docs/generator)相关章节。**跟着文章节奏调试和示例调试，动手调试（用`vscode`或者`chrome`）印象更加深刻**。文章长段代码不用细看，可以调试时再细看。
+
+```bash
+# 克隆我的这个仓库
+git clone https://github.com/lxchuan12/koa-analysis.git
+# chrome 调试：
+# 全局安装 http-server
+npm i -g http-server
+hs koa/examples/
+# 可以指定端口 -p 3001
+# hs -p 3001 koa/examples/
+# 浏览器中打开
+# 然后在浏览器中打开localhost:8080，开心的把代码调试起来
+```
+
+这里把这个`examples`文件夹做个简单介绍。<br>
+`middleware`文件夹是用来`vscode`调试整体流程的。<br>
+`simpleKoa` 文件夹是`koa`简化版，为了调试koa-compose中间件的。<br>
+`koa-convert`，是用来调试`koa-convert`和`co`源码的。<br>
+`co-generator`文件夹是模拟实现`co`的示例代码。<br>
+
+
 TODO: 导读：
 如果你简历上一不小心写了熟悉`koa2`，面试官大概率会问：
->`koa2`洋葱模型怎么实现的。
->如果中间件中的`next()`方法报错了会怎样。
+>1、`koa2`洋葱模型怎么实现的。<br>
+>2、如果中间件中的`next()`方法报错了会怎样。<br>
+>3、`co`的原理是怎样的。<br>
+>等等问题<br>
 
 ## vscode 调试 koa 源码方法
 
@@ -41,6 +64,7 @@ TODO: 导读：
 看源码，调试很重要，所以我详细写下 `koa` 源码调试方法，帮助一些可能不知道如何调试的读者。
 
 ```bash
+# 我已经克隆到我的koa-analysis仓库了
 git clone https://github.com/koajs/koa.git
 ```
 
@@ -67,7 +91,7 @@ git clone https://github.com/koajs/examples.git
 
 继续看文档会发现**使用指南**讲述`编写中间件`。
 
-## 使用文档中的中间件（koa-compose）例子来调试
+### 使用文档中的中间件（koa-compose）例子来调试
 
 学习 `koa-compose` 前，
 引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
@@ -86,7 +110,7 @@ git clone https://github.com/koajs/examples.git
 >   9. 设置 `X-Response-Time` 头字段
 >   10. 交给 Koa 处理响应
 
-看到这个`gif`图，我把之前写的`examples/koa-compose`的调试方法含泪删除了。默默写上`gif`图上的这些代码，想着这个读者们更容易读懂。
+看到这个`gif`图，我把之前写的`examples/koa-compose`的调试方法**含泪删除**了。默默写上`gif`图上的这些代码，想着这个读者们更容易读懂。
 我把这段代码写在这里 [`koa/examples/middleware/app.js`](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/middleware/app.js)便于调试。
 
 <details>
@@ -128,9 +152,11 @@ app.listen(3000);
 
 </details>
 
-`koa` 洋葱模型比较重要，用`vscode`，按`koa/examples/middleware/app.js`文件。按`F5`打开调试模式。
+在项目路径下配置新建[.vscode/launch.json](https://github.com/lxchuan12/koa-analysis/blob/master/.vscode/launch.json)文件，`program`配置为自己写的`koa/examples/middleware/app.js`文件，按`F5键`开始调试，调试时先走主流程，不要一开始就关心细枝末节。
 
-在项目路径下配置新建[.vscode/launch.json](https://github.com/lxchuan12/koa-analysis/blob/master/.vscode/launch.json)文件，`program`配置为自己写的`koa/examples/middleware/app.js`文件，按`F5键`开始调试。
+>**断点调试要领：**<br>
+**赋值语句可以一步跳过，看返回值即可，后续详细再看。**<br>
+**函数执行需要断点跟着看，也可以结合注释和上下文倒推这个函数做了什么。**<br>
 
 <details>
 <summary>.vscode/launch.json 代码，点击这里展开/收缩，可以复制</summary>
@@ -157,12 +183,6 @@ app.listen(3000);
 
 </details>
 
-读者可以直接克隆我的代码仓库来学习。
-
-```bash
-git clone https://github.com/lxchuan12/koa-analysis.git
-```
-
 上述比较啰嗦的写了一堆调试方法。主要是想着`授人予鱼不如授人予渔`，这样换成其他源码也会调试了。
 
 简单说下`chrome`调试，`chrome`浏览器打开`chrome://inspect`，点击配置**configure...**配置`127.0.0.1:端口号`(端口号在Vscode 调试控制台显示了)。
@@ -173,13 +193,51 @@ git clone https://github.com/lxchuan12/koa-analysis.git
 
 喜欢看视频的读者也可以看慕课网这个视频[node.js调试入门](https://www.imooc.com/learn/1093)，讲得还是比较详细的。
 
+## 先看看 `new Koa()` 结果`app`是什么
+
+看源码我习惯性看**它的实例对象结构**。
+
+先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
+
+```js
+// 文件 koa/examples/middleware/app.js
+const Koa = require('../../lib/application');
+
+// const Koa = require('koa');
+// 这里打个断点
+const app = new Koa();
+// x-response-time
+
+// 这里打个断点
+app.use(async (ctx, next) => {
+
+});
+```
+
+在控制台打印`app`。会有一张这样的图。
+[koa 实例对象](../koa-analysis/images/koa-instance.jpeg)
+
+也有一个插件查看图片形式。
+
+TODO: 画图。
+
+[index API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/index.md)
+
+### context
+
+[context API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/context.md)
+
+### request
+
+[request API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/request.md)
+
+### response
+
+[response API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/response.md)
+
 ## koa 主流程梳理简化
 
-通过`F5启动调试`、`F10单步跳过`、`F11单步调试`等，配合重要的地方断点，调试完整体代码，其实比较容易整理出如下主流程的代码。
-
->**断点调试要领：**<br>
-**赋值语句可以一步跳过，看返回值即可，后续详细再看。**<br>
-**函数执行需要断点跟着看，也可以结合注释和上下文倒推这个函数做了什么。**<br>
+通过`F5启动调试（直接跳到下一个断点处）`、`F10单步跳过`、`F11单步调试`等，配合重要的地方断点，调试完整体代码，其实比较容易整理出如下主流程的代码。
 
 ```js
 class Emitter{
@@ -225,29 +283,16 @@ function respond(ctx){
 
 ## koa-compose 源码
 
-```js
-/**
- * Compose `middleware` returning
- * a fully valid middleware comprised
- * of all those which are passed.
- *
- * @param {Array} middleware
- * @return {Function}
- * @api public
- */
+传入一个数组，返回一个函数。对入参是不是数组和校验数组每一项是不是函数。
 
+```js
 function compose (middleware) {
   if (!Array.isArray(middleware)) throw new TypeError('Middleware stack must be an array!')
   for (const fn of middleware) {
     if (typeof fn !== 'function') throw new TypeError('Middleware must be composed of functions!')
   }
 
-  /**
-   * @param {Object} context
-   * @return {Promise}
-   * @api public
-   */
-
+ //  传入对象 context 返回Promise
   return function (context, next) {
     // last called middleware #
     let index = -1
@@ -271,20 +316,36 @@ function compose (middleware) {
 把简化的代码和`koa-compose`代码写在了一个文件中。[koa/examples/simpleKoa/koa-compose.js](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/simpleKoa/koa-compose.js)
 
 ```bash
-# 克隆我的这个仓库
-git clone https://github.com/lxchuan12/koa-analysis.git
-# 安装 http-server 启动服务的 npm 包
-npm i http-server -g
-# 启动服务，默认端口8080
-hs koa/examples/simpleKoa/
-# 也可以指定端口
-# hs -p 3000 koa/examples/simpleKoa/
-# 然后可以打开localhost:8080，开心的把代码调试起来
+hs koa/examples/
+# 然后可以打开localhost:8080/simpleKoa，开心的把代码调试起来
 ```
 
 不过这样好像还是有点麻烦，我还把这些代码放在[`codepen` https://codepen.io/lxchuan12/pen/wvarPEb](https://codepen.io/lxchuan12/pen/wvarPEb)中，**直接可以在线调试啦**。是不是觉得很贴心^_^，自己多调试几遍便于消化理解。
 
-不得不说非常惊艳，“玩还是作者会玩”。
+你会发现`compose`就是类似这样的结构（移除一些判断）。
+
+```js
+// 这样就可能更好理解了。
+const [fn1, fn2, fn3] = this.middleware;
+const fnMiddleware = function(context){
+    return Promise.resolve(
+      fn1(context, function next(){
+        return Promise.resolve(
+          fn2(context, function next(){
+              return Promise.resolve(
+                  fn3(context, function next(){
+                    return Promise.resolve();
+                  })
+              )
+          })
+        )
+    })
+  );
+};
+fnMiddleware(ctx).then(handleResponse).catch(onerror);
+```
+
+不得不说非常惊艳，“玩还是大神会玩”。
 
 这种把函数存储下来的方式，在很多源码中都有看到。比如`lodash`源码的惰性求值，`vuex`也是把`action`等函数存储下，最后才去调用。
 
@@ -292,46 +353,32 @@ hs koa/examples/simpleKoa/
 
 ## 错误处理 TODO:
 
-## 继续看 new Koa() 结果是什么
-
-看源码我习惯性看**它的实例对象结构**。
-
-看示例文件路径
-`koa-analysis/examples/compose/app.js`，
+[中文文档 错误处理](https://github.com/demopark/koa-docs-Zh-CN/blob/master/error-handling.md)
 
 ```js
-const compose = require('koa-compose');
-const Koa = require('../../koa/lib/application');
-const app = module.exports = new Koa();
-
-console.log('app-new-koa():', {koaInstance: app});
 ```
-
-开始有这么几行代码，我们先不研究具体实现。先看下执行`new Koa()`之后，`app`是什么，有个初步印象。
-
-TODO: 画图。
-
-[index API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/index.md)
-
-## context
-
-[context API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/context.md)
-
-## request
-
-[request API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/request.md)
-
-## response
-
-[response API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/response.md)
 
 ## koa2 和 koa1 的对比
 
+[中文文档中描述了 koa2 和 koa1 的区别](https://github.com/demopark/koa-docs-Zh-CN/blob/master/migration.md)
+
+`koa1`中主要是`generator`函数。`koa2`中会自动转换`generator`函数。
+
+```js
+// Koa 将转换
+app.use(function *(next) {
+  const start = Date.now();
+  yield next;
+  const ms = Date.now() - start;
+  console.log(`${this.method} ${this.url} - ${ms}ms`);
+});
+```
+
 ### koa-convert 源码
 
-在`vscode/launch.json`，文件，找到这个`program`，`"program": "${workspaceFolder}/koa/examples/koa-convert/app.js"`。
+在`vscode/launch.json`文件，找到这个`program`字段，修改为`"program": "${workspaceFolder}/koa/examples/koa-convert/app.js"`。
 
-通过`F5启动调试`、`F10单步跳过`、`F11单步调试`调试走一遍流程。重要地方断点调试。
+通过`F5启动调试（直接跳到下一个断点处）`、`F10单步跳过`、`F11单步调试`调试走一遍流程。重要地方断点调试。
 
 `app.use`时有一层判断，是否是`generator`函数，没有则用`koa-convert`暴露的方法`convert`来转换重新赋值，再存入`middleware`，后续再使用。
 
@@ -352,7 +399,7 @@ class Koa extends Emitter{
 }
 ```
 
-`koa-convert`源码挺多，核心代码其实是这样。
+`koa-convert`源码挺多，核心代码其实是这样的。
 
 ```js
 function convert(){
@@ -525,7 +572,7 @@ coSimple(generatorFunc, ' 哎呀，我真的是后缀');
 
 但第三版的模拟实现简版`co`中，还没有考虑报错、和一些参数合法的情况。
 
-最终来看下`co`源码。
+#### 最终来看下`co`源码
 
 ```js
 function co(gen) {
@@ -603,11 +650,17 @@ web 框架有很多，比如`Express.js`，`Koa.js`、`Egg.js`、`Nest.js`、`Ne
 
 ## 总结
 
-`promise`链式调用。
-
 主要总结四个核心概念，中间件，http请求上下文（context）、http请求对象、响应对象。
 
 HTTP协议、TCP/IP协议网络相关。不属于koa的知识，但需深入学习掌握。
+
+## 还能做些什么？
+
+文章通过`授人予鱼不如授人予鱼`的方式，告知如何调试源码，看完了`koa-compose`中间件，`koa-convert`和`co`等源码。
+
+还能根据我文章说的调试方式调试[koa 组织](https://github.com/koajs)中的各种中间件，比如`koa-bodyparser`, `koa-router`，`koa-jwt`，`koa-session`、`koa-cors`等等。
+
+还能把[`examples`仓库](https://github.com/koajs/examples)克隆下来，挨个调试学习下源码。
 
 ## 推荐阅读
 
