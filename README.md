@@ -23,7 +23,7 @@
 
 本文仓库在这里[若川的 koa-analysis github 仓库 https://github.com/lxchuan12/koa-analysis](https://github.com/lxchuan12/koa-analysis)。求个`star`呀。
 
-**本文阅读最佳方式**：先`star`一下我的仓库，再把它`git clone https://github.com/lxchuan12/koa-analysis.git`克隆下来。不用管你是否用过`nodejs`。会一点点`promise、generator、await`等知识即可看懂。如果一点点也不会，可以边看阮一峰老师的[《ES6标准入门》](https://es6.ruanyifeng.com/#docs/generator)相关章节。**跟着文章节奏调试和示例代码调试，动手调试（用`vscode`或者`chrome`）印象更加深刻**。文章长段代码不用细看，可以调试时再细看。看这类源码文章百遍，可能不如自己多调试几遍。也欢迎加我微信交流`lxchuan12`。
+**本文阅读最佳方式**：先`star`一下我的仓库，再把它`git clone https://github.com/lxchuan12/koa-analysis.git`克隆下来。不用管你是否用过`nodejs`。会一点点`promise、generator、async、await`等知识即可看懂。如果一点点也不会，可以边看阮一峰老师的[《ES6标准入门》](https://es6.ruanyifeng.com/#docs/generator)相关章节。**跟着文章节奏调试和示例代码调试，动手调试（用`vscode`或者`chrome`）印象更加深刻**。文章长段代码不用细看，可以调试时再细看。看这类源码文章百遍，可能不如自己多调试几遍。也欢迎加我微信交流`lxchuan12`。
 
 ```bash
 # 克隆我的这个仓库
@@ -362,12 +362,39 @@ fnMiddleware(ctx).then(handleResponse).catch(onerror);
 
 搞懂了`koa-compose` 中间件代码，其他代码就不在话下了。
 
-## 错误处理 TODO:
+## 错误处理
 
 [中文文档 错误处理](https://github.com/demopark/koa-docs-Zh-CN/blob/master/error-handling.md)
 
 ```js
+class Application extends Emitter {
+  // 代码有简化组合
+  listen(){
+    // application
+    const  fnMiddleware = compose(this.middleware);
+    if (!this.listenerCount('error')) this.on('error', this.onerror);
+    const onerror = err => ctx.onerror(err);
+    fnMiddleware(ctx).then(handleResponse).catch(onerror);
+  }
+  onerror(err) {
+    if (!(err instanceof Error)) throw new TypeError(util.format('non-error thrown: %j', err));
 
+    if (404 == err.status || err.expose) return;
+    if (this.silent) return;
+
+    const msg = err.stack || err.toString();
+    console.error();
+    console.error(msg.replace(/^/gm, '  '));
+    console.error();
+  }
+}
+```
+
+```js
+// 使用
+const app = new Koa();
+app.on('error')
+app.onerror()
 ```
 
 ## koa2 和 koa1 的对比
@@ -455,7 +482,7 @@ generatorFunc(); // 报告，我不会输出你想要的结果的
 ```
 
 简单来说`co`，就是把`generator`自动执行，再返回一个`promise`。
-**`generator`函数这玩意它不自动执行呀，还要一步步调用`next()`，也就是叫它走一步才走一步。**
+**`generator`函数这玩意它不自动执行呀，还要一步步调用`next()`，也就是叫它走一步才走一步**。
 
 所以有了`async、await`函数。
 
