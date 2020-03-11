@@ -3,4 +3,4 @@
 	url = https://github.com/demopark/koa-docs-Zh-CN
 [submodule "examples"]
 	path = examples
-	url = https://github.com/koajs/examples
+	url = https://github.com/koajs/examples.git
