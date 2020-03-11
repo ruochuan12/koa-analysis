@@ -12,7 +12,8 @@
                 "<node_internals>/**"
             ],
             // "program": "${workspaceFolder}/examples/hello-world/app.js"
-            "program": "${workspaceFolder}/koa/examples/middleware/app.js"
+            "program": "${workspaceFolder}/koa/examples/middleware/app.js",
+            // "program": "${workspaceFolder}/koa/examples/koa-convert/app.js"
         }
     ]
 }

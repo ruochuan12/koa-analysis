@@ -17,6 +17,6 @@ hs koa/examples/
 
 这里把这个`examples`文件夹做个简单介绍。<br>
 `middleware`文件夹是用来`vscode`调试整体流程的。<br>
-`simpleKoa` 文件夹是`koa`简化版，为了调试koa-compose中间件的。<br>
+`simpleKoa` 文件夹是`koa`简化版，为了调试`koa-compose`中间件的。<br>
 `koa-convert`，是用来调试`koa-convert`和`co`源码的。<br>
 `co-generator`文件夹是模拟实现`co`的示例代码。<br>
