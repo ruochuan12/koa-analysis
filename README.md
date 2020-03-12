@@ -22,6 +22,7 @@
 
 **导读**<br>
 文章通过例子调试`koa`，梳理`koa`的主流程，来理解`koa-compose`洋葱模型原理和`co`库的原理，相信看完一定会有所收获。
+
 ![本文目录](../koa-analysis/images/contents.png)
 
 本文学习的`koa`版本是`v2.11.0`。克隆的官方仓库的`master`分支。
@@ -95,14 +96,19 @@ git clone https://github.com/koajs/examples.git
 ### 使用文档中的中间件`koa-compose`例子来调试
 
 学习 `koa-compose` 前，先看两张图。
+
 ![洋葱模型示意图](../koa-analysis/images/models.png)
+
 ![洋葱模型中间件示意图](../koa-analysis/images/middleware.png)
+
 在`koa`中，请求响应都放在中间件的第一个参数`context`对象中了。
 
 再引用[Koa中文文档](https://github.com/demopark/koa-docs-Zh-CN/blob/master/guide.md#debugging-koa)中的一段：
 
 如果您是前端开发人员，您可以将 `next()`; 之前的任意代码视为“捕获”阶段，这个简易的 `gif` 说明了 `async` 函数如何使我们能够恰当地利用堆栈流来实现请求和响应流：
+
 ![中间件gif图](./images/middleware.gif)
+
 >
 >   1. 创建一个跟踪响应时间的日期
 >   2. 等待下一个中间件的控制
@@ -179,9 +185,9 @@ app.use(async (ctx, next) => {
 });
 ```
 
-在调试控制台`ctrl + ``（反引号键，一般唤起`Tab`上的按键）`，输入`app`，按`enter`键打印`app`。会有一张这样的图。
+在调试控制台`ctrl + 反引号键（一般在`Tab`上方的按键）唤起`，输入`app`，按`enter`键打印`app`。会有一张这样的图。
 
-![koa 实例对象](../koa-analysis/images/koa-instance.jpeg)
+![koa 实例对象调试图](../koa-analysis/images/koa-instance.jpeg)
 
 `VScode`也有一个代码调试神器插件[`Debug Visualizer`](https://marketplace.visualstudio.com/items?itemName=hediet.debug-visualizer)。
 
@@ -192,6 +198,7 @@ app.use(async (ctx, next) => {
 不过目前体验来看，相对还比较鸡肋，只能显示一级，而且只能显示对象，相信以后会更好。更多玩法可以查看它的文档。
 
 我把koa实例对象比较完整的用`xmind`画出来了，大概看看就好，有个初步印象。
+
 ![koa 实例对象](../koa-analysis/images/koa-instance-xmind.png)
 
 接着，我们可以看下`app 实例、context、request、request`的官方文档。
