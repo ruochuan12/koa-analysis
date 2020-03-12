@@ -1,16 +1,12 @@
-# 学习 koa 源码的整体架构，可能是最好懂的koa中间件原理和co原理
+# 学习 koa 源码的整体架构，浅析koa中间件原理和co原理
 
 ## 前言
 
 >这是`学习源码整体架构系列`第七篇。整体架构这词语好像有点大，姑且就算是源码整体结构吧，主要就是学习是代码整体结构，不深究其他不是主线的具体函数的实现。本篇文章学习的是实际仓库的代码。
 
 `学习源码整体架构系列`文章如下：
->1.[学习 jQuery 源码整体架构，打造属于自己的 js 类库](https://juejin.im/post/5d39d2cbf265da1bc23fbd42)<br>
->2.[学习 underscore 源码整体架构，打造属于自己的函数式编程类库](https://juejin.im/post/5d4bf94de51d453bb13b65dc)<br>
->3.[学习 lodash 源码整体架构，打造属于自己的函数式编程类库](https://juejin.im/post/5d767e1d6fb9a06b032025ea)<br>
->4.[学习 sentry 源码整体架构，打造属于自己的前端异常监控SDK](https://juejin.im/post/5dba5a39e51d452a2378348a)<br>
->5.[学习 vuex 源码整体架构，打造属于自己的状态管理库](https://juejin.im/post/5dd4e61a6fb9a05a5c010af0)<br>
->6.[学习 axios 源码整体架构，打造属于自己的请求库](https://juejin.im/post/5df349b5518825123751ba66)<br>
+>1.[学习 jQuery 源码整体架构](https://juejin.im/post/5d39d2cbf265da1bc23fbd42) | 2.[学习 underscore 源码整体架构](https://juejin.im/post/5d4bf94de51d453bb13b65dc) | 3.[学习 lodash 源码整体架构](https://juejin.im/post/5d767e1d6fb9a06b032025ea) | 4.[学习 sentry 源码整体架构](https://juejin.im/post/5dba5a39e51d452a2378348a)
+| 5.[学习 vuex 源码整体架构](https://juejin.im/post/5dd4e61a6fb9a05a5c010af0) | 6.[学习 axios 源码整体架构](https://juejin.im/post/5df349b5518825123751ba66)<br>
 
 感兴趣的读者可以点击阅读。<br>
 其他源码计划中的有：[`express`](https://github.com/lxchuan12/express-analysis)、[`vue-rotuer`](https://github.com/lxchuan12/vue-router-analysis)、[`redux`](https://github.com/lxchuan12/redux-analysis)、  [`react-redux`](https://github.com/lxchuan12/react-redux-analysis) 等源码，不知何时能写完（哭泣），欢迎持续关注我（若川）。
@@ -41,12 +37,12 @@ hs koa/examples/
 这里把这个`examples`文件夹做个简单介绍。<br>
 - `middleware`文件夹是用来`vscode`调试整体流程的。<br>
 - `simpleKoa` 文件夹是`koa`简化版，为了调试`koa-compose`中间件的。<br>
-- `koa-convert`，是用来调试`koa-convert`和`co`源码的。<br>
+- `koa-convert`文件夹是用来调试`koa-convert`和`co`源码的。<br>
 - `co-generator`文件夹是模拟实现`co`的示例代码。<br>
 
-如果你简历上一不小心写了熟悉`koa2`，面试官大概率会问：
->1、`koa2`洋葱模型怎么实现的。<br>
->2、如果中间件中的`next()`方法报错了会怎样。<br>
+如果你简历上一不小心写了熟悉`koa`，面试官大概率会问：
+>1、`koa`洋葱模型怎么实现的。<br>
+>2、如果中间件中的`next()`方法报错了怎么办。<br>
 >3、`co`的原理是怎样的。<br>
 >等等问题<br>
 **导读**<br>
@@ -113,46 +109,6 @@ git clone https://github.com/koajs/examples.git
 看到这个`gif`图，我把之前写的`examples/koa-compose`的调试方法**含泪删除**了。默默写上`gif`图上的这些代码，想着这个读者们更容易读懂。
 我把这段代码写在这里 [`koa/examples/middleware/app.js`](https://github.com/lxchuan12/koa-analysis/blob/master/koa/examples/middleware/app.js)便于调试。
 
-<details>
-<summary>gif图中的代码，点击这里展开/收缩，可以复制</summary>
-
-```js
-// koa/examples/middleware/app.js 文件
-const Koa = require('../../lib/application');
-
-// const Koa = require('koa');
-
-const app = new Koa();
-
-// x-response-time
-
-app.use(async (ctx, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  ctx.set('X-Response-Time', `${ms}ms`);
-});
-
-// logger
-
-app.use(async (ctx, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  console.log(`${ctx.method} ${ctx.url} - ${ms}`);
-});
-
-// response
-
-app.use(async ctx => {
-  ctx.body = 'Hello World';
-});
-
-app.listen(3000);
-```
-
-</details>
-
 在项目路径下配置新建[.vscode/launch.json](https://github.com/lxchuan12/koa-analysis/blob/master/.vscode/launch.json)文件，`program`配置为自己写的`koa/examples/middleware/app.js`文件。
 
 <details>
@@ -215,7 +171,7 @@ app.use(async (ctx, next) => {
 });
 ```
 
-在调试控制台`ctrl + \`（反引号键，一般唤起`Tab`上的按键）`，输入`app`，按`enter`键打印`app`。会有一张这样的图。
+在调试控制台`ctrl + ``（反引号键，一般唤起`Tab`上的按键）`，输入`app`，按`enter`键打印`app`。会有一张这样的图。
 
 ![koa 实例对象](../koa-analysis/images/koa-instance.jpeg)
 
@@ -227,14 +183,14 @@ app.use(async (ctx, next) => {
 
 不过目前体验来看，相对还比较鸡肋，只能显示一级，而且只能显示对象，相信以后会更好。更多玩法可以查看它的文档。
 
+我把koa实例对象比较完整的用`xmind`画出来了，大概看看就好，有个初步印象。
+![koa 实例对象](../koa-analysis/images/koa-instance-xmind.png)
+
 接着，我们可以看下`app 实例、context、request、request`的官方文档。
 
 ### app 实例、context、request、request 官方API文档
 
-- [index API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/index.md)
-- [context API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/context.md)
-- [request API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/request.md)
-- [response API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/response.md)
+- [index API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/index.md) | [context API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/context.md) | [request API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/request.md) | [response API](https://github.com/demopark/koa-docs-Zh-CN/blob/master/api/response.md)
 
 可以真正使用的时候再去仔细看文档。
 
@@ -349,12 +305,12 @@ const fnMiddleware = function(context){
 fnMiddleware(ctx).then(handleResponse).catch(onerror);
 ```
 
-也就是说`koa-compose`返回的是一个`Promise`，`Promise`中取出第一个函数（`app.use`添加的中间件），传入`context`和第一个`next`函数来执行。<br>
+>也就是说`koa-compose`返回的是一个`Promise`，`Promise`中取出第一个函数（`app.use`添加的中间件），传入`context`和第一个`next`函数来执行。<br>
 第一个`next`函数里也是返回的是一个`Promise`，`Promise`中取出第二个函数（`app.use`添加的中间件），传入`context`和第二个`next`函数来执行。<br>
 第二个`next`函数里也是返回的是一个`Promise`，`Promise`中取出第二个函数（`app.use`添加的中间件），传入`context`和第三个`next`函数来执行。<br>
 第三个...<br>
 以此类推。最后一个中间件中有调用`next`函数，则返回`Promise.resolve`。如果没有，则不执行`next`函数。
-这样就把所有中间件串联起来了。<br>
+这样就把所有中间件串联起来了。这也就是我们常说的洋葱模型。<br>
 
 **不得不说非常惊艳，“玩还是大神会玩”**。
 
@@ -366,36 +322,58 @@ fnMiddleware(ctx).then(handleResponse).catch(onerror);
 
 [中文文档 错误处理](https://github.com/demopark/koa-docs-Zh-CN/blob/master/error-handling.md)
 
+仔细看文档，文档中写了三种捕获错误的方式。
+
+- `ctx.onerror` 中间件中的错误捕获
+- `app.on('error', (err) => {})` 最外层实例事件监听形式
+  也可以看看例子[koajs/examples/errors/app.js 文件](https://github.com/koajs/examples/blob/master/errors/app.js)
+- `app.onerror = (err) => {}` 重写`onerror`自定义形式
+  也可以看[测试用例 onerror](https://github.com/lxchuan12/koa-analysis/blob/master/koa/test/context/onerror.js)
+
 ```js
+// application.js 文件
 class Application extends Emitter {
   // 代码有简化组合
   listen(){
-    // application
     const  fnMiddleware = compose(this.middleware);
     if (!this.listenerCount('error')) this.on('error', this.onerror);
     const onerror = err => ctx.onerror(err);
     fnMiddleware(ctx).then(handleResponse).catch(onerror);
   }
   onerror(err) {
-    if (!(err instanceof Error)) throw new TypeError(util.format('non-error thrown: %j', err));
+    // 代码省略
+    // ...
+  }
+}
+```
 
-    if (404 == err.status || err.expose) return;
-    if (this.silent) return;
+**ctx.onerror**
 
-    const msg = err.stack || err.toString();
-    console.error();
-    console.error(msg.replace(/^/gm, '  '));
-    console.error();
+`lib/context.js`文件中，有一个函数`onerror`，而且有这么一行代码`this.app.emit('error', err, this)`。
+
+```js
+module.exports = {
+  onerror(){
+    // delegate
+    // app 是在new Koa() 实例
+    this.app.emit('error', err, this);
   }
 }
 ```
 
 ```js
-// 使用
-const app = new Koa();
-app.on('error')
-app.onerror()
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    err.status = err.statusCode || err.status || 500;
+    throw err;
+  }
+});
 ```
+
+`try catch` 错误或被`fnMiddleware(ctx).then(handleResponse).catch(onerror);`，这里的`onerror`是`ctx.onerror`<br>
+而`ctx.onerror`函数中又调用了`this.app.emit('error', err, this)`，所以在最外围`app.on('error'，err => {})`可以捕获中间件链中的错误。
 
 ## koa2 和 koa1 的对比
 
@@ -625,7 +603,9 @@ function co(gen) {
   // which leads to memory leak errors.
   // see https://github.com/tj/co/issues/180
   return new Promise(function(resolve, reject) {
+    // 把参数传递给gen函数并执行
     if (typeof gen === 'function') gen = gen.apply(ctx, args);
+    // 如果不是函数 直接返回
     if (!gen || typeof gen.next !== 'function') return resolve(gen);
 
     onFulfilled();
@@ -671,10 +651,15 @@ function co(gen) {
      * @api private
      */
 
+    // 反复执行调用自己
     function next(ret) {
+      // 检查当前是否为 Generator 函数的最后一步，如果是就返回
       if (ret.done) return resolve(ret.value);
+      // 确保返回值是promise对象。
       var value = toPromise.call(ctx, ret.value);
+      // 使用 then 方法，为返回值加上回调函数，然后通过 onFulfilled 函数再次调用 next 函数。
       if (value && isPromise(value)) return value.then(onFulfilled, onRejected);
+      // 在参数不符合要求的情况下（参数非 Thunk 函数和 Promise 对象），将 Promise 对象的状态改为 rejected，从而终止执行。
       return onRejected(new TypeError('You may only yield a function, promise, generator, array, or object, '
         + 'but the following object was passed: "' + String(ret.value) + '"'));
     }
@@ -692,17 +677,28 @@ function co(gen) {
 
 文章通过`授人予鱼不如授人予鱼`的方式，告知如何调试源码，看完了`koa-compose`中间件，`koa-convert`和`co`等源码。
 
-`koa-compose`是将`app.use`添加到`middleware`数组中的中间件，通过使用`Promise`串联起来。
+`koa-compose`是将`app.use`添加到`middleware`数组中的中间件（函数），通过使用`Promise`串联起来。
 
 `koa-convert` 判断`app.use`传入的函数是否是`generator`函数，如果是则用`koa-convert`来转换，最终还是调用的`co`来转换。
 
-`co`源码实现原理其实就是通过不断的调用`generator`函数的`next()`函数，来达到执行`generator`函数的效果（类似`async、await函数的自动自行`）。
+`co`源码实现原理：其实就是通过不断的调用`generator`函数的`next()`函数，来达到自动执行`generator`函数的效果（类似`async、await函数的自动自行`）。
 
-`koa`框架总结：主要就是四个核心概念，中间件，`http`请求上下文（`context`）、`http`请求对象、`http`响应对象。
+`koa`框架总结：主要就是四个核心概念，洋葱模型（把中间件串联起来），`http`请求上下文（`context`）、`http`请求对象、`http`响应对象。
 
 >如果读者发现有不妥或可改善之处，再或者哪里没写明白的地方，欢迎评论指出，也欢迎加我微信交流`lxchuan12`。另外觉得写得不错，对您有些许帮助，可以点赞、评论、转发分享，也是对笔者的一种支持，万分感谢。
 
-### 还能做些什么？
+### 解答下开头的提问
+
+仅供参考
+
+>1、`koa`洋葱模型怎么实现的。<br>
+答：app.use() 把中间件函数存储在middleware数组。
+>2、如果中间件中的`next()`方法报错了怎么办。<br>
+答：可以进行
+>3、`co`的原理是怎样的。<br>
+答：`co`的原理
+
+### 还能做些什么 ？
 
 学完了整体流程，`koa-compose`、`koa-convert`和`co`的源码。
 
@@ -722,11 +718,7 @@ function co(gen) {
 
 ## 推荐阅读
 
-[koa 官网](https://koajs.com/)<br>
-[koa 仓库](https://github.com/koajs/koa)<br>
-[koa 组织](https://github.com/koajs)<br>
-[koa2 中文文档](https://github.com/demopark/koa-docs-Zh-CN)<br>
-[co 仓库](https://github.com/tj/co)<br>
+[koa 官网](https://koajs.com/) | [koa 仓库](https://github.com/koajs/koa) | [koa 组织](https://github.com/koajs) | [koa2 中文文档](https://github.com/demopark/koa-docs-Zh-CN) | [co 仓库](https://github.com/tj/co)<br>
 [知乎@姚大帅：可能是目前市面上比较有诚意的Koa2源码解读](https://zhuanlan.zhihu.com/p/34797505)<br>
 [知乎@零小白：十分钟带你看完 KOA 源码](https://zhuanlan.zhihu.com/p/24559011)<br>
 [微信开放社区@小丹の：可能是目前最全的koa源码解析指南](https://developers.weixin.qq.com/community/develop/article/doc/0000e4c9290bc069f3380e7645b813)<br>
